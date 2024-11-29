@@ -1,61 +1,105 @@
-# ArXiv MCP Server
+# ArXiv Search Service
 
-A Model Context Protocol server for searching and analyzing arXiv papers. This server enables AI models like Claude to access and analyze academic papers from arXiv.
-
-## Features
-
-- **Paper Search**: Full-text search across arXiv papers with filtering options
-- **Paper Analysis**: Detailed metadata and analysis of specific papers
-- **Async Support**: Efficient handling of concurrent requests
-- **Structured Output**: Clean JSON responses for easy parsing
+A powerful and flexible service for searching and analyzing arXiv papers. This tool provides both a Python API and a command-line interface for easy access to arXiv's research paper repository.
 
 ## Installation
 
+The recommended installation method uses uv:
+
 ```bash
-uv add mcp-server arxiv httpx
+uv pip install git+https://github.com/blazickjp/arxiv-mcp-server.git
 ```
 
-## Usage
+For development installation with test dependencies:
 
-1. Start the server:
 ```bash
-python -m arxiv_mcp_server
+# Clone the repository
+git clone https://github.com/blazickjp/arxiv-mcp-server.git
+cd arxiv-mcp-server
+
+# Create and activate a virtual environment using uv
+uv venv
+source .venv/bin/activate
+
+# Install the package in development mode with test dependencies
+uv pip install -e ".[test]"
 ```
 
-2. Configure Claude Desktop to use the server:
+## Command Line Usage
 
-Add to claude_desktop_config.json:
-```json
-{
-  "mcpServers": {
-    "arxiv": {
-      "command": "python",
-      "args": ["-m", "arxiv_mcp_server"]
-    }
-  }
-}
+The package provides a command-line tool `arxiv-search` with two main commands:
+
+### Search for Papers
+
+```bash
+# Basic search
+arxiv-search search "attention is all you need"
+
+# Advanced search with filters
+arxiv-search search "transformer architecture" \
+    --max-results 20 \
+    --date-from 2023-01-01 \
+    --categories cs.AI cs.LG \
+    --batch-size 10
 ```
 
-## API
+### Analyze a Specific Paper
 
-### Tools
+```bash
+arxiv-search analyze 1706.03762
+```
 
-1. `search_papers`
-   - Search arXiv papers with filtering options
-   - Parameters:
-     - query: Search query string
-     - max_results: Maximum number of results (1-50)
-     - date_from: Filter papers from date (YYYY-MM-DD)
-     - categories: List of arXiv categories
+## Python API Usage
 
-2. `analyze_paper`
-   - Get detailed analysis of a specific paper
-   - Parameters:
-     - paper_id: arXiv paper ID
+The package can also be used as a Python library:
 
-## Contributing
+```python
+import asyncio
+from arxiv_mcp_server.server import ServiceFactory, SearchParameters
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+async def main():
+    # Create service instance
+    service = ServiceFactory.create_service()
+    
+    # Search for papers
+    params = SearchParameters(
+        query="attention is all you need",
+        max_results=5,
+        categories=["cs.AI", "cs.LG"]
+    )
+    result = await service.search_papers(params)
+    print(result.text)
+    
+    # Analyze a specific paper
+    analysis = await service.analyze_paper("1706.03762")
+    print(analysis.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Development
+
+To run the tests:
+
+```bash
+# Install test dependencies
+uv pip install -e ".[test]"
+
+# Run tests
+python -m pytest
+```
+
+## Features
+
+- Full-text search across arXiv papers
+- Date-based filtering
+- Category filtering
+- Batch processing for efficient retrieval
+- Detailed paper analysis
+- Asynchronous operation for better performance
+- Command-line interface for easy access
+- Python API for integration into other projects
 
 ## License
 
