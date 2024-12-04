@@ -29,13 +29,13 @@ The ArXiv MCP Server bridges the gap between AI models and academic research by 
 
 Install using uv:
 
-\`\`\`bash
+```bash
 uv pip install git+https://github.com/blazickjp/arxiv-mcp-server.git
-\`\`\`
+```
 
 For development:
 
-\`\`\`bash
+```bash
 # Clone and set up development environment
 git clone https://github.com/blazickjp/arxiv-mcp-server.git
 cd arxiv-mcp-server
@@ -46,14 +46,14 @@ source .venv/bin/activate
 
 # Install with test dependencies
 uv pip install -e ".[test]"
-\`\`\`
+```
 
 ## 💡 Usage
 
 ### Paper Search
 Search with precision using multiple criteria:
 
-\`\`\`python
+```python
 # Example: Find recent AI papers
 result = await call_tool("search_papers", {
     "query": "transformer architecture applications",
@@ -77,16 +77,16 @@ result = await call_tool("search_papers", {
         }
     ]
 }
-\`\`\`
+```
 
 ### Paper Download
 Transform papers into accessible resources:
 
-\`\`\`python
+```python
 result = await call_tool("download_paper", {
     "paper_id": "2401.12345"
 })
-\`\`\`
+```
 
 ## ⚙️ Configuration
 
@@ -94,17 +94,17 @@ Customize through environment variables:
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| \`ARXIV_STORAGE_PATH\` | Paper storage location | ~/.arxiv-mcp-server/papers |
-| \`ARXIV_MAX_RESULTS\` | Search results limit | 50 |
-| \`ARXIV_REQUEST_TIMEOUT\` | API timeout (seconds) | 30 |
+| `ARXIV_STORAGE_PATH` | Paper storage location | ~/.arxiv-mcp-server/papers |
+| `ARXIV_MAX_RESULTS` | Search results limit | 50 |
+| `ARXIV_REQUEST_TIMEOUT` | API timeout (seconds) | 30 |
 
 ## 🧪 Development
 
 Run the comprehensive test suite:
 
-\`\`\`bash
+```bash
 python -m pytest
-\`\`\`
+```
 
 The test suite provides:
 - ✅ Unit tests for components
