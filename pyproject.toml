@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arxiv-mcp-server"
-version = "0.2.0"
+version = "0.2.2"
 description = "A flexible arXiv search and analysis service with MCP protocol support"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -39,7 +39,4 @@ testpaths = ["tests"]
 addopts = "-v --cov=arxiv_mcp_server"
 
 [project.scripts]
-arxiv-mcp-server = "arxiv_mcp_server.server:main"
-
-[tool.hatch.metadata]
-allow-direct-references = true
+arxiv-mcp-server = "arxiv_mcp_server:main"

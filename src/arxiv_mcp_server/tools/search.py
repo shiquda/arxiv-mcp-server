@@ -10,6 +10,22 @@ from ..config import Settings
 
 settings = Settings()
 
+search_tool = types.Tool(
+    name="search_papers",
+    description="Search for papers on arXiv with advanced filtering",
+    inputSchema={
+        "type": "object",
+        "properties": {
+            "query": {"type": "string"},
+            "max_results": {"type": "integer"},
+            "date_from": {"type": "string"},
+            "date_to": {"type": "string"},
+            "categories": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["query"],
+    },
+)
+
 
 def _is_within_date_range(
     date: datetime, start: datetime | None, end: datetime | None
@@ -39,23 +55,6 @@ def _process_paper(paper: arxiv.Result) -> Dict[str, Any]:
         "url": paper.pdf_url,
         "resource_uri": f"arxiv://{paper.get_short_id()}",
     }
-
-
-search_tool = types.Tool(
-    name="search_papers",
-    description="Search for papers on arXiv with advanced filtering",
-    inputSchema={
-        "type": "object",
-        "properties": {
-            "query": {"type": "string", "description": "Search query"},
-            "max_results": {"type": "integer", "default": 10},
-            "date_from": {"type": "string", "format": "date"},
-            "date_to": {"type": "string", "format": "date"},
-            "categories": {"type": "array", "items": {"type": "string"}},
-        },
-        "required": ["query"],
-    },
-)
 
 
 async def handle_search(arguments: Dict[str, Any]) -> List[types.TextContent]:
