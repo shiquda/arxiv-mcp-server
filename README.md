@@ -48,6 +48,33 @@ source .venv/bin/activate
 uv pip install -e ".[test]"
 ```
 
+### 🔌 Claude Desktop Integration
+
+Add this configuration to your Claude Desktop config file to enable ArXiv paper access:
+
+<details>
+<summary>📝 Click to view configuration</summary>
+
+```json
+{
+    "mcpServers": {
+        "arxiv-mcp-server": {
+            "command": "uv",
+            "args": [
+                "run",
+                "arxiv-mcp-server",
+                "--storage-path", "/path/to/paper/storage",
+                "--max-results", "50",
+                "--timeout", "30"
+            ]
+        }
+    }
+}
+```
+</details>
+
+Make sure to adjust the storage path and other parameters according to your needs. This configuration enables Claude to search and access ArXiv papers directly through the MCP server.
+
 ## 💡 Usage
 
 ### Paper Search
