@@ -2,5 +2,13 @@
 
 from .search import search_tool, handle_search
 from .download import download_tool, handle_download
+from .list_papers import list_tool, handle_list_papers
 
-__all__ = ['search_tool', 'download_tool', 'handle_search', 'handle_download']
+__all__ = [
+    "search_tool",
+    "download_tool",
+    "handle_search",
+    "handle_download",
+    "list_tool",
+    "handle_list_papers",
+]

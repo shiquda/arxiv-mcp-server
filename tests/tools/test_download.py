@@ -1,75 +1,62 @@
-"""Tests for paper download functionality."""
+"""Tests for paper download functionality using real arXiv papers."""
 
-import pytest
 import json
-from unittest.mock import patch, MagicMock
-import arxiv
-from arxiv_mcp_server.tools import handle_download
+import pytest
+import shutil
+from pathlib import Path
+from arxiv_mcp_server.tools.download import handle_download
+from arxiv_mcp_server.resources.storage import PaperStorage
+from arxiv_mcp_server.config import Settings
+
+# Using "Attention Is All You Need" as a stable test paper
+STABLE_PAPER_ID = "1706.03762"
+settings = Settings()
 
 
 @pytest.mark.asyncio
-async def test_download_new_paper(mock_client, mock_paper, temp_storage_path):
-    """Test downloading a new paper."""
-    with (
-        patch("arxiv.Client", return_value=mock_client),
-        patch(
-            "arxiv_mcp_server.resources.storage.PaperStorage.store_paper",
-            return_value=True,
-        ),
-    ):
+async def test_download_paper_lifecycle():
+    """Test downloading a real paper from arXiv."""
+    # Download paper
+    result = await handle_download({"paper_id": STABLE_PAPER_ID})
+    content = json.loads(result[0].text)
 
-        result = await handle_download({"paper_id": "2103.12345"})
-
-        content = json.loads(result[0].text)
-        assert content["status"] == "success"
-        assert content["resource_uri"] == "arxiv://2103.12345"
+    assert content["status"] == "success"
+    expected_path = Path(settings.STORAGE_PATH) / f"{STABLE_PAPER_ID}.pdf"
+    assert content["resource_uri"] == f"file://{expected_path}"
+    assert expected_path.exists()
+    assert expected_path.stat().st_size > 0
 
 
 @pytest.mark.asyncio
-async def test_download_existing_paper(mock_client, temp_storage_path):
-    """Test attempting to download an already stored paper."""
-    with (
-        patch("arxiv.Client", return_value=mock_client),
-        patch(
-            "arxiv_mcp_server.resources.storage.PaperStorage.has_paper",
-            return_value=True,
-        ),
-    ):
+async def test_download_existing_paper():
+    """Test downloading a paper that's already in storage."""
 
-        result = await handle_download({"paper_id": "2103.12345"})
+    # First download
+    await handle_download({"paper_id": STABLE_PAPER_ID})
 
-        content = json.loads(result[0].text)
-        assert content["status"] == "success"
-        assert "already available" in content["message"]
+    # Try downloading again
+    result = await handle_download({"paper_id": STABLE_PAPER_ID})
+    content = json.loads(result[0].text)
 
-
-@pytest.mark.asyncio
-async def test_download_nonexistent_paper():
-    """Test downloading a paper that doesn't exist."""
-    empty_client = MagicMock(spec=arxiv.Client)
-    empty_client.results = MagicMock(return_value=[])
-
-    with patch("arxiv.Client", return_value=empty_client):
-        result = await handle_download({"paper_id": "nonexistent"})
-
-        content = json.loads(result[0].text)
-        assert content["status"] == "error"
-        assert "not found" in content["message"]
+    expected_path = Path(settings.STORAGE_PATH) / f"{STABLE_PAPER_ID}.pdf"
+    assert content["status"] == "success"
+    assert content["resource_uri"] == f"file://{expected_path}"
+    assert "already available" in content["message"]
 
 
 @pytest.mark.asyncio
-async def test_download_failure(mock_client):
-    """Test handling download failures."""
-    with (
-        patch("arxiv.Client", return_value=mock_client),
-        patch(
-            "arxiv_mcp_server.resources.storage.PaperStorage.store_paper",
-            return_value=False,
-        ),
-    ):
+async def test_download_nonexistent_paper(temp_storage_path):
+    """Test downloading a non-existent paper ID."""
+    result = await handle_download({"paper_id": "0000.00000"})
+    content = json.loads(result[0].text)
 
-        result = await handle_download({"paper_id": "2103.12345"})
+    assert content["status"] == "error"
+    assert "not found" in content["message"]
+    assert not (temp_storage_path / "0000.00000.pdf").exists()
 
-        content = json.loads(result[0].text)
-        assert content["status"] == "error"
-        assert "Failed to download" in content["message"]
+
+def teardown_module(module):
+    """Clean up any downloaded papers after tests complete."""
+    test_storage = Path("/tmp/arxiv-test-storage")
+    if test_storage.exists():
+        shutil.rmtree(test_storage)

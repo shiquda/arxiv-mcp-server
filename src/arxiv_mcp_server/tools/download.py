@@ -5,7 +5,9 @@ import json
 from typing import Dict, Any, List
 import mcp.types as types
 from ..resources import ResourceManager
+from ..config import Settings
 
+settings = Settings()
 
 download_tool = types.Tool(
     name="download_paper",
@@ -37,7 +39,7 @@ async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
                     text=json.dumps(
                         {
                             "status": "success",
-                            "resource_uri": f"arxiv://{paper_id}",
+                            "resource_uri": f"file://{settings.STORAGE_PATH}/{paper_id}.pdf",
                             "message": f"Paper {paper_id} is already available as a resource",
                         }
                     ),
@@ -82,7 +84,7 @@ async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
                 text=json.dumps(
                     {
                         "status": "success",
-                        "resource_uri": f"arxiv://{paper_id}",
+                        "resource_uri": f"file://{settings.STORAGE_PATH}/{paper_id}.pdf",
                         "message": f"Paper {paper_id} has been downloaded and is available as a resource",
                     }
                 ),
