@@ -20,6 +20,11 @@ list_tool = types.Tool(
 )
 
 
+def list_papers() -> list[str]:
+    """List all stored paper IDs."""
+    return [p.stem for p in Path(settings.STORAGE_PATH).glob("*.md")]
+
+
 async def handle_list_papers(
     arguments: Optional[Dict[str, Any]] = None
 ) -> List[types.TextContent]:
