@@ -1,3 +1,7 @@
+"""
+Arxiv MCP Server initialization
+"""
+
 from . import server
 import asyncio
 

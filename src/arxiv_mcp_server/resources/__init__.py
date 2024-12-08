@@ -1,6 +1,5 @@
 """Resource management for the arXiv MCP server."""
 
-from .manager import ResourceManager
-from .storage import PaperStorage
+from .papers import PaperManager
 
-__all__ = ['ResourceManager', 'PaperStorage']
+__all__ = ["PaperManager"]
