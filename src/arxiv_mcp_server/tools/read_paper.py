@@ -1,22 +1,24 @@
-"""Read functionality for the arXiv MCP server."""
+"""Get paper content functionality for the arXiv MCP server."""
 
 import json
 from pathlib import Path
 from typing import Dict, Any, List
 import mcp.types as types
 from ..config import Settings
+from .html_converter import ArxivHTMLConverter
 
 settings = Settings()
+html_converter = ArxivHTMLConverter()
 
 read_tool = types.Tool(
-    name="read_paper",
-    description="Read the full content of a stored paper in markdown format",
+    name="get_paper",
+    description="Get the full content of an arXiv paper in markdown format from HTML source",
     inputSchema={
         "type": "object",
         "properties": {
             "paper_id": {
                 "type": "string",
-                "description": "The arXiv ID of the paper to read",
+                "description": "The arXiv ID of the paper to get (e.g., '1706.03762')",
             }
         },
         "required": ["paper_id"],
@@ -25,33 +27,32 @@ read_tool = types.Tool(
 
 
 def list_papers() -> list[str]:
-    """List all stored paper IDs."""
+    """List all cached paper IDs."""
     return [p.stem for p in Path(settings.STORAGE_PATH).glob("*.md")]
 
 
 async def handle_read_paper(arguments: Dict[str, Any]) -> List[types.TextContent]:
-    """Handle requests to read a paper's content."""
+    """Handle requests to get a paper's content from arXiv HTML."""
     try:
-        paper_ids = list_papers()
         paper_id = arguments["paper_id"]
-        # Check if paper exists
-        if paper_id not in paper_ids:
+
+        # Use the HTML converter to get paper content
+        success, content = await html_converter.get_or_fetch_paper_content(
+            paper_id, Path(settings.STORAGE_PATH)
+        )
+
+        if not success:
             return [
                 types.TextContent(
                     type="text",
                     text=json.dumps(
                         {
                             "status": "error",
-                            "message": f"Paper {paper_id} not found in storage. You may need to download it first using download_paper.",
+                            "message": f"Failed to get paper {paper_id}: {content}",
                         }
                     ),
                 )
             ]
-
-        # Get paper content
-        content = Path(settings.STORAGE_PATH, f"{paper_id}.md").read_text(
-            encoding="utf-8"
-        )
 
         return [
             types.TextContent(
@@ -61,6 +62,8 @@ async def handle_read_paper(arguments: Dict[str, Any]) -> List[types.TextContent
                         "status": "success",
                         "paper_id": paper_id,
                         "content": content,
+                        "source": "arXiv HTML",
+                        "cached": Path(settings.STORAGE_PATH, f"{paper_id}.md").exists()
                     }
                 ),
             )
@@ -73,7 +76,7 @@ async def handle_read_paper(arguments: Dict[str, Any]) -> List[types.TextContent
                 text=json.dumps(
                     {
                         "status": "error",
-                        "message": f"Error reading paper: {str(e)}",
+                        "message": f"Error getting paper: {str(e)}",
                     }
                 ),
             )
